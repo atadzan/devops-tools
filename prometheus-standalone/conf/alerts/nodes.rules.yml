@@ -1,0 +1,66 @@
+groups:
+- name: node-exports
+  rules:
+  - alert: disk_space_low
+    expr: node_filesystem_avail_bytes{fstype =~ "ext.|xfs"} / node_filesystem_size_bytes{fstype =~ "ext.|xfs"} * 100 < 5
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'LOW DISK on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: disk_space_low
+    expr: node_filesystem_avail_bytes{fstype =~ "ext.|xfs"} / node_filesystem_size_bytes{fstype =~ "ext.|xfs"} * 100 < 3
+    for: 15m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'OUT of DISK on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: inode_high_usage
+    expr: node_filesystem_files_free{fstype =~ "ext.|xfs"} / node_filesystem_files{fstype =~ "ext.|xfs"} * 100 < 10
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'HIGH INODES usage on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: cpu_high_usage
+    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job = "node-exporter", mode = "idle"}[2m]))) * 100 > 90
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'HIGH CPU load on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: cpu_high_usage
+    expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job = "node-exporter", mode = "idle"}[2m]))) * 100 > 95
+    for: 15m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'EXTREME CPU load on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: memory_high_usage
+    #expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 90
+    expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 97
+    for: 15m
+    labels:
+      severity: warning
+    annotations:
+      summary: 'LOW MEMORY on {{ $labels.instance }}'
+      value: '{{ $value }}%'
+
+  - alert: memory_high_usage
+    expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 95
+    for: 15m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'OUT of MEMORY on {{ $labels.instance }}'
+      value: '{{ $value }}%'

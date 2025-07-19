@@ -1,0 +1,12 @@
+groups:
+- name: prom-jobs
+  rules:
+  - alert: ScrapeFailed
+    expr: up == 0
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      summary: '{{ $labels.hostname }} scrape FAILED'
+      description: 'last scraping of {{ $labels.hostname }} on {{ $labels.instance }} was unsuccessfull'
+      value: '{{ $value }}'

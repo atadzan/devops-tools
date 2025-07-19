@@ -1,0 +1,27 @@
+groups:
+- name: domains
+  rules:
+  - alert: DomainExpiring
+    expr: avg_over_time(domain_expiry_days[4h]) < 10
+    for: 1h
+    labels:
+      severity: high
+    annotations:
+      description: 'Domain {{ $labels.domain }} will expire in less than 10 days'
+      summary: '{{ $labels.domain }}: domain is expiring'
+  - alert: DomainExpiring
+    expr: avg_over_time(domain_expiry_days[4h]) < 5
+    for: 1h
+    labels:
+      severity: major
+    annotations:
+      description: 'Domain {{ $labels.domain }} will expire in less than 5 days'
+      summary: '{{ $labels.domain }}: domain is expiring'
+  - alert: DomainExpiring
+    expr: avg_over_time(domain_expiry_days[4h]) < 2
+    for: 1h
+    labels:
+      severity: critical
+    annotations:
+      description: 'Domain {{ $labels.domain }} will expire in less than 2 days'
+      summary: '{{ $labels.domain }}: domain is expiring'

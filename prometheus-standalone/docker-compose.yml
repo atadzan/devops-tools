@@ -1,0 +1,120 @@
+version: '3.3'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    hostname: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - prometheus_data:/prometheus
+      - ./conf/prometheus.yml:/prometheus.yml
+      - ./conf/alerts/blackbox.rules.yml:/blackbox.rules.yml
+      - ./conf/alerts/certs.rules.yml:/certs.rules.yml
+      - ./conf/alerts/domains.rules.yml:/domains.rules.yml
+      - ./conf/alerts/nodes.rules.yml:/nodes.rules.yml
+      - ./conf/alerts/services.rules.yml:/services.rules.yml
+      - ./conf/alerts/pve.rules.yml:/pve.rules.yml
+      - ./conf/alerts/rabbit.rules.yml:/rabbit.rules.yml
+    command: ["--config.file=/prometheus.yml", "--storage.tsdb.path=/prometheus", "--web.enable-lifecycle"]
+
+  grafana:
+    image: grafana/grafana:12.0.2-ubuntu
+    hostname: grafana
+    ports:
+      - 80:3000
+    volumes:
+      - ./conf/grafana.ini:/etc/grafana/grafana.ini
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - postgres
+    environment:
+      GF_DATABASE_URL: 'postgres://postgres:postgres@postgres:5432/grafana?sslmode=disable'
+      GF_LOG_CONSOLE_FORMAT: text
+      GF_LOG_MODE: console
+      GF_METRICS_DISABLE_TOTAL_STATS: 'false'
+      GF_METRICS_ENABLED: 'true'
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_SERVER_ENABLE_GZIP: 'false'
+      GF_SERVER_ROOT_URL: https://metrics.belet.me
+      GF_SNAPSHOTS_EXTERNAL_ENABLED: 'false'
+      GF_USERS_AUTO_ASSIGN_ORG: 'true'
+#      GF_INSTALL_PLUGINS: 'camptocamp-prometheus-alertmanager-datasource,devopsprodigy-kubegraf-app'
+
+
+#  renderer:
+#    image: grafana/grafana-image-renderer
+#    hostname: renderer-infra-prod-1
+#    environment:
+#      BROWSER_TZ: Europe/Moscow
+#      ENABLE_METRICS: 'true'
+#      HTTP_HOST: 0.0.0.0
+
+  postgres:
+    image: postgres:12-alpine
+    hostname: grafana-postgres
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+      - ./conf/init.db.sh:/docker-entrypoint-initdb.d/init.db.sh
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres 
+
+
+#  alertmanager:
+#    image: prom/alertmanager
+#    hostname: alertmanager-infra-prod-1
+#    ports:
+#      - 9093:9093
+#    volumes:
+#      - alertmanager_data:/alertmanager
+#      - ./conf/alertmanager.yml:/alertmanager.yml
+#    command: ["--config.file=/alertmanager.yml", "--storage.path=/alertmanager"]
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.0.1
+    hostname: '{{.Node.Hostname}}-node-exporter'
+    volumes:
+      - /:/host:ro,rslave
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.disable-defaults'
+      - '--collector.netclass.ignored-devices=^(veth|docker|lo).*$$'
+      - '--collector.bonding'
+      - '--collector.cpu'
+      - '--collector.cpu.info'
+      - '--collector.cpufreq'
+      - '--collector.diskstats'
+      - '--collector.filesystem'
+      - '--collector.hwmon'
+      - '--collector.interrupts'
+      - '--collector.loadavg'
+      - '--collector.mdadm'
+      - '--collector.meminfo'
+      - '--collector.mountstats'
+      - '--collector.netclass'
+      - '--collector.netdev'
+      - '--collector.netstat'
+      - '--collector.pressure'
+      - '--collector.processes'
+      - '--collector.schedstat'
+      - '--collector.sockstat'
+      - '--collector.softnet'
+      - '--collector.stat'
+      - '--collector.textfile'
+      - '--collector.thermal_zone'
+      - '--collector.time'
+      - '--collector.timex'
+      - '--collector.udp_queues'
+      - '--collector.uname'
+      - '--collector.vmstat'
+
+volumes:
+  alertmanager_data:
+  grafana_data:
+  postgres_data:
+  prometheus_data:
+

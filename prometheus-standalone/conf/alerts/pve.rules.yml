@@ -1,0 +1,11 @@
+groups:
+- name: pve-exports
+  rules:
+  - alert: Cluster degradation
+    expr: pve_cluster_info{quorate="0"}
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: 'Cluster degradation {{ $labels.instance }}'
+      value: '{{ $value }}%'

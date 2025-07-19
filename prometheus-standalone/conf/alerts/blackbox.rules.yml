@@ -1,0 +1,21 @@
+groups:
+- name: bb-probes
+  rules:
+    - alert: NodeDown
+      expr: probe_success{job =~ "bb-icmp"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: '{{ $labels.instance }} DOWN'
+        description: "PING of {{ $labels.instance }} from {{ $labels.job }} was unsuccessfull for last 3m"
+        value: '{{ $value }}'
+    - alert: SiteDown
+      expr: probe_success{job =~ "bb-http"} == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: '{{ $labels.instance }} DOWN'
+        description: "GET of {{ $labels.instance }} from {{ $labels.job }} was unsuccessfull for last 3m"
+        value: "{{ $value }}"

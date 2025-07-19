@@ -1,0 +1,20 @@
+groups:
+- name: ssl-certs-le
+  rules:
+  - alert: ssl_sert_expiry
+    expr: (probe_ssl_earliest_cert_expiry - time()) <= (86400 * 3)
+    for: 15m
+    labels:
+      severity: minor
+    annotations:
+      summary: 'CERTIFICATE for {{ $labels.instance }} has EXPIRY soon'
+      value: '{{ $value | humanizeDuration }}'
+
+  - alert: ssl_cert_expiry
+    expr: (probe_ssl_earliest_cert_expiry - time()) <= (86400 * 1)
+    for: 15m
+    labels:
+      severity: major
+    annotations:
+      summary: 'CERTIFICATE for {{ $labels.instance }} has EXPIRED'
+      value: '{{ $value | humanizeDuration }}'
